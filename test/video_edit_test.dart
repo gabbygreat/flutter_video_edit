@@ -17,6 +17,13 @@ class MockVideoEditPlatform
   @override
   Future<File?> addImageToVideo(Map<String, dynamic> data) =>
       Future.value(null);
+
+  @override
+  Future<File?> addTextToVideo(Map<String, dynamic> data) => Future.value(null);
+
+  @override
+  Future<File?> addShapesToVideo(Map<String, dynamic> data) =>
+      Future.value(null);
 }
 
 void main() {

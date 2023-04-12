@@ -32,4 +32,22 @@ class MethodChannelVideoEdit extends VideoEditPlatform {
     if (level == null) return null;
     return File(level);
   }
+
+  @override
+  Future<File?> addTextToVideo(Map<String, dynamic> data) async {
+    final level =
+        await methodChannel.invokeMethod<String?>('addTextToVideo', data);
+
+    if (level == null) return null;
+    return File(level);
+  }
+
+  @override
+  Future<File?> addShapesToVideo(Map<String, dynamic> data) async {
+    final level =
+        await methodChannel.invokeMethod<String?>('addShapesToVideo', data);
+
+    if (level == null) return null;
+    return File(level);
+  }
 }

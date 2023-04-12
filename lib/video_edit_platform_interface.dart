@@ -32,7 +32,16 @@ abstract class VideoEditPlatform extends PlatformInterface {
   Future<int?> getBatteryLevel() {
     throw UnimplementedError('getBatteryLevel() has not been implemented.');
   }
+
   Future<File?> addImageToVideo(Map<String, dynamic> data) {
-    throw UnimplementedError('getBatteryLevel() has not been implemented.');
+    throw UnimplementedError('addImageToVideo() has not been implemented.');
+  }
+
+  Future<File?> addTextToVideo(Map<String, dynamic> data) {
+    throw UnimplementedError('addTextToVideo() has not been implemented.');
+  }
+
+  Future<File?> addShapesToVideo(Map<String, dynamic> data) {
+    throw UnimplementedError('addShapesToVideo() has not been implemented.');
   }
 }

@@ -6,54 +6,38 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_edit/video_edit.dart';
+import 'package:video_edit_example/video.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
-  State<MyApp> createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const HomePage(),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
-  int _batteryLevel = 0;
-  final _videoEditPlugin = VideoEdit();
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  void initState() {
-    super.initState();
-    initPlatformState();
-  }
+  State<HomePage> createState() => _HomePageState();
+}
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    int batteryLevel;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion = await _videoEditPlugin.getPlatformVersion() ??
-          'Unknown platform version';
-      batteryLevel = await _videoEditPlugin.getBatteryLevel() ?? -1;
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-      batteryLevel = -1;
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-      _batteryLevel = batteryLevel;
-    });
-  }
+class _HomePageState extends State<HomePage> {
+  final _videoEditPlugin = VideoEdit();
 
   Future<File> getFile(String assetPath) async {
     ByteData bytes = await rootBundle.load(assetPath); //load sound from assets
@@ -66,44 +50,142 @@ class _MyAppState extends State<MyApp> {
     return file;
   }
 
-  Future<void> doImage() async {
-    print('Hello');
-    File imageFile = await getFile('assets/tap.png');
+  Future<File?> doNormal() async {
     File videoFile = await getFile('assets/test.mp4');
+    return videoFile;
+  }
 
-    final a = await _videoEditPlugin.addImageToVideo({
+  Future<File?> doImage() async {
+    File imageFile = await getFile('assets/logo.png');
+    File videoFile = await getFile('assets/test.mp4');
+    return await _videoEditPlugin.addImageToVideo({
       "imagePath": imageFile.path,
       "videoPath": videoFile.path,
-      "x": 100,
-      "y": 100
+      "x": 500,
+      "y": 100,
     });
-    if (a != null) {
-      debugPrint('Here it is ${a.path}');
-    }
-    print('above $a');
-    debugPrint('object');
+  }
+
+  Future<File?> doText() async {
+    File videoFile = await getFile('assets/test.mp4');
+    final a = await _videoEditPlugin.addTextToVideo({
+      "text": 'Vigoplace',
+      "videoPath": videoFile.path,
+      "x": 500,
+      "y": 100,
+    });
+    return a;
+  }
+
+  Future<File?> doShapes() async {
+    File videoFile = await getFile('assets/test.mp4');
+    final a = await _videoEditPlugin.addShapesToVideo({
+      "videoPath": videoFile.path,
+    });
+    return a;
+  }
+
+  Future<File?> doAll() async {
+    File videoFile = await getFile('assets/test.mp4');
+    File imageFile = await getFile('assets/logo.png');
+
+    final a = await _videoEditPlugin.addShapesToVideo({
+      "videoPath": videoFile.path,
+    });
+    final b = await _videoEditPlugin.addImageToVideo({
+      "imagePath": imageFile.path,
+      "videoPath": a?.path,
+      "x": 500,
+      "y": 100,
+    });
+    final c = await _videoEditPlugin.addTextToVideo({
+      "text": 'Vigoplace',
+      "videoPath": b?.path,
+      "x": 100,
+      "y": 100,
+    });
+    return c;
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async => await doImage(),
-          child: const Icon(Icons.add),
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Running on: $_platformVersion\n'),
-              Text('Battery is at: $_batteryLevel%\n'),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Plugin Video Edit App'),
+      ),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: '0',
+            onPressed: () => doNormal().then((value) {
+              if (value != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => VideoApp(file: value),
+                  ),
+                );
+              }
+            }),
+            child: const Icon(Icons.play_arrow),
           ),
-        ),
+          const SizedBox(width: 20),
+          FloatingActionButton(
+            heroTag: '1',
+            onPressed: () => doImage().then((value) {
+              if (value != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => VideoApp(file: value),
+                  ),
+                );
+              }
+            }),
+            child: const Icon(Icons.image),
+          ),
+          const SizedBox(width: 20),
+          FloatingActionButton(
+            heroTag: '2',
+            onPressed: () => doText().then((value) {
+              if (value != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => VideoApp(file: value),
+                  ),
+                );
+              }
+            }),
+            child: const Icon(Icons.edit),
+          ),
+          const SizedBox(width: 20),
+          FloatingActionButton(
+            heroTag: '3',
+            onPressed: () => doShapes().then((value) {
+              if (value != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => VideoApp(file: value),
+                  ),
+                );
+              }
+            }),
+            child: const Icon(Icons.shape_line),
+          ),
+          const SizedBox(width: 20),
+          FloatingActionButton(
+            heroTag: '4',
+            onPressed: () => doAll().then((value) {
+              if (value != null) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => VideoApp(file: value),
+                  ),
+                );
+              }
+            }),
+            child: const Icon(Icons.all_out),
+          ),
+        ],
       ),
     );
   }
