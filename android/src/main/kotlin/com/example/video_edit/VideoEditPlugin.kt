@@ -22,7 +22,6 @@ import android.os.BatteryManager
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.util.Log
-import android.graphics.Color
 
 
 /** VideoEditPlugin */
@@ -68,7 +67,9 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
       result.success(add)
     } else if (call.method == "addShapesToVideo"){
       val videoPath: String = call.argument("videoPath")?:""
-      val add = addShapesToVideo(videoPath)
+      val color: String = call.argument("color")?: "0xFF0000"
+
+      val add = addShapesToVideo(videoPath,color)
       result.success(add)
     } else{
       result.notImplemented()
@@ -80,22 +81,18 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   private fun getBatteryLevel(): Int {
-    val batteryLevel: Int
-    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+    val batteryLevel: Int = if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
       val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-      batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+      batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
     } else {
       val intent = ContextWrapper(context).registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-      batteryLevel = intent!!.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+      intent!!.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
     }
 
     return batteryLevel
   }
 
-  @TargetApi(VERSION_CODES.O)
-  fun colorToRgb(color: Color): String {
-    return listOf(color.red(), color.green(), color.blue()).joinToString(":")
-  }
+
 
   @TargetApi(VERSION_CODES.O)
   private fun addImageToVideo(videoPath: String, imagePath: String, x: Int, y: Int): String? {
@@ -113,7 +110,7 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
     val formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS")
     val current = LocalDateTime.now().format(formatter)
 
-    val outputPath = "${context.getCacheDir()}/$current.mp4"
+    val outputPath = "${context.cacheDir}/$current.mp4"
 
     val commands = ArrayList<String>()
     commands.add("-i")
@@ -177,7 +174,12 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   @TargetApi(VERSION_CODES.O)
-  private fun addShapesToVideo(videoPath: String): String? {
+  fun colorToRgb(colorList: List<Int>): String {
+    return listOf(colorList[0], colorList[1], colorList[2]).joinToString(":")
+  }
+
+  @TargetApi(VERSION_CODES.O)
+  private fun addShapesToVideo(videoPath: String, color: String): String? {
     
     val videoFile = File(videoPath)
     if (!videoFile.exists()) {
@@ -189,15 +191,17 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
 
     val outputPath = "${context.cacheDir}/$current.mp4"
 
+    Log.i("GABBY GREAT",color)
+
     val commands = ArrayList<String>()
     commands.add("-i")
     commands.add(videoPath)
     commands.add("-vf")
-    commands.add("drawline=x1=100:y1=100:x2=300:y2=100:color=yellow@0.5:thickness=5")
+    commands.add("drawline=x1=50:y1=200:x2=300:y2=100:color=$color:thickness=5")
     commands.add("-vf")
-    commands.add("drawcircle=x=250:y=250:r=50:color=red@0.5:thickness=5")
+    commands.add("drawcircle=x=50:y=250:r=50:color=$color:thickness=5")
     commands.add("-vf")
-    commands.add("drawbox=x=50:y=200:w=200:h=100:color=green@0.5:thickness=5")
+    commands.add("drawbox=x=50:y=200:w=200:h=100:color=$color:thickness=5")
     commands.add("-codec:a")
     commands.add("copy")
     commands.add("-preset")

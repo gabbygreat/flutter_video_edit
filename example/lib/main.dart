@@ -5,7 +5,9 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_edit/video_edit.dart';
+import 'package:video_edit_example/edit_video.dart';
 import 'package:video_edit_example/video.dart';
 
 void main() {
@@ -38,6 +40,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _videoEditPlugin = VideoEdit();
+  XFile? edittedVideo;
 
   Future<File> getFile(String assetPath) async {
     ByteData bytes = await rootBundle.load(assetPath); //load sound from assets
@@ -55,9 +58,14 @@ class _HomePageState extends State<HomePage> {
     return videoFile;
   }
 
-  Future<File?> doImage() async {
+  Future<File?> doImage({File? video}) async {
     File imageFile = await getFile('assets/logo.png');
-    File videoFile = await getFile('assets/test.mp4');
+    late File videoFile;
+    if (video != null) {
+      videoFile = video;
+    } else {
+      videoFile = await getFile('assets/test.mp4');
+    }
     return await _videoEditPlugin.addImageToVideo({
       "imagePath": imageFile.path,
       "videoPath": videoFile.path,
@@ -66,44 +74,43 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<File?> doText() async {
-    File videoFile = await getFile('assets/test.mp4');
+  Future<File?> doText({File? video}) async {
+    late File videoFile;
+    if (video != null) {
+      videoFile = video;
+    } else {
+      videoFile = await getFile('assets/test.mp4');
+    }
     final a = await _videoEditPlugin.addTextToVideo({
       "text": 'Vigoplace',
       "videoPath": videoFile.path,
       "x": 500,
-      "y": 100,
+      "y": 300,
     });
     return a;
   }
 
-  Future<File?> doShapes() async {
-    File videoFile = await getFile('assets/test.mp4');
+  Future<File?> doShapes({File? video}) async {
+    late File videoFile;
+    if (video != null) {
+      videoFile = video;
+    } else {
+      videoFile = await getFile('assets/test.mp4');
+    }
+
+    const shapeColor = Colors.black;
+    String hex = "0x${shapeColor.value.toRadixString(16).substring(2)}";
     final a = await _videoEditPlugin.addShapesToVideo({
       "videoPath": videoFile.path,
+      "color": hex,
     });
     return a;
   }
 
   Future<File?> doAll() async {
-    File videoFile = await getFile('assets/test.mp4');
-    File imageFile = await getFile('assets/logo.png');
-
-    final a = await _videoEditPlugin.addShapesToVideo({
-      "videoPath": videoFile.path,
-    });
-    final b = await _videoEditPlugin.addImageToVideo({
-      "imagePath": imageFile.path,
-      "videoPath": a?.path,
-      "x": 500,
-      "y": 100,
-    });
-    final c = await _videoEditPlugin.addTextToVideo({
-      "text": 'Vigoplace',
-      "videoPath": b?.path,
-      "x": 100,
-      "y": 100,
-    });
+    final a = await doShapes();
+    final b = await doImage(video: a);
+    final c = await doText(video: b);
     return c;
   }
 
@@ -113,8 +120,31 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Plugin Video Edit App'),
       ),
-      floatingActionButton: Row(
-        mainAxisSize: MainAxisSize.min,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FloatingActionButton(
+              backgroundColor: Colors.black26,
+              elevation: 0,
+              onPressed: () async {
+                getFile('assets/test.mp4').then(
+                  (value) => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => VideoEditScreen(
+                        file: value,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: const Icon(Icons.edit),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: Wrap(
+        // mainAxisSize: MainAxisSize.min,
         children: [
           FloatingActionButton(
             heroTag: '0',
