@@ -70,38 +70,34 @@ class DrawingAppCanvas extends StatelessWidget {
     final box = context.findRenderObject() as RenderBox;
     allSketches.value = List<Sketch>.from(allSketches.value)
       ..add(currentSketch.value!);
-    for (var i in allSketches.value) {
-      final maxX = i.points.map((e) => e.dx).toList().max;
-      final minX = i.points.map((e) => e.dx).toList().min;
+    final maxX = allSketches.value.last.points.map((e) => e.dx).toList().max;
+    final minX = allSketches.value.last.points.map((e) => e.dx).toList().min;
 
-      final maxY = i.points.map((e) => e.dy).toList().max;
-      final minY = i.points.map((e) => e.dy).toList().min;
+    final maxY = allSketches.value.last.points.map((e) => e.dy).toList().max;
+    final minY = allSketches.value.last.points.map((e) => e.dy).toList().min;
 
-      Rect rect = Rect.fromPoints(Offset(minX, minY), Offset(maxX, maxY));
-      // rect.s
+    Rect rect = Rect.fromPoints(Offset(minX, minY), Offset(maxX, maxY));
+    // rect.s
 
-      final x = rect.topCenter.dx / box.size.width;
-      final y = rect.topCenter.dy / box.size.height;
+    final x = rect.topCenter.dx / box.size.width;
+    final y = rect.topCenter.dy / box.size.height;
 
-      widgetList.add(
-        DraggableWidget(
-          onMove: (p0, p1) {},
-          offset: Offset(x, y),
-          child: Container(
-            constraints: BoxConstraints(
-              minHeight: rect.size.height,
-              minWidth: rect.size.width,
-            ),
-            color: Colors.red,
-            height: rect.size.height,
-            width: rect.size.width,
-            child: CustomPaint(
-              painter: sketchDrawing(i),
-            ),
-          ),
+    widgetList.add(DraggableWidget(
+      onMove: (p0, p1) {},
+      offset: Offset(x, y),
+      child: Container(
+        constraints: BoxConstraints(
+          minHeight: rect.size.height,
+          minWidth: rect.size.width,
         ),
-      );
-    }
+        color: Colors.red,
+        height: rect.size.height,
+        width: rect.size.width,
+        child: CustomPaint(
+          painter: sketchDrawing(allSketches.value.last),
+        ),
+      ),
+    ));
   }
 
   @override
@@ -292,7 +288,6 @@ class SketchPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant SketchPainter oldDelegate) {
-    return oldDelegate.sketches != sketches;
-  }
+  bool shouldRepaint(covariant SketchPainter oldDelegate) =>
+      oldDelegate.sketches != sketches;
 }

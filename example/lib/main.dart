@@ -4,15 +4,17 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_edit/video_edit.dart';
+import 'package:video_edit/video_edit_model.dart';
 import 'package:video_edit_example/edit_video.dart';
 import 'package:video_edit_example/video.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -58,20 +60,19 @@ class _HomePageState extends State<HomePage> {
     return videoFile;
   }
 
-  Future<File?> doImage({File? video}) async {
-    File imageFile = await getFile('assets/logo.png');
+  Future<String?> doImage({File? video}) async {
+    File imageFile = await getFile('assets/images.jpeg');
     late File videoFile;
     if (video != null) {
       videoFile = video;
     } else {
       videoFile = await getFile('assets/test.mp4');
     }
-    return await _videoEditPlugin.addImageToVideo({
-      "imagePath": imageFile.path,
-      "videoPath": videoFile.path,
-      "x": 500,
-      "y": 100,
-    });
+    final VideoEditImage videoEditImage = VideoEditImage(
+        imagePath: imageFile.path, videoPath: videoFile.path, x: 500, y: 100);
+    var a = await _videoEditPlugin.addImageToVideo2(videoEditImage.toMap());
+    debugPrint("THIS IS>>>>>>>>$a ");
+    return a;
   }
 
   Future<File?> doText({File? video}) async {
@@ -81,37 +82,10 @@ class _HomePageState extends State<HomePage> {
     } else {
       videoFile = await getFile('assets/test.mp4');
     }
-    final a = await _videoEditPlugin.addTextToVideo({
-      "text": 'Vigoplace',
-      "videoPath": videoFile.path,
-      "x": 500,
-      "y": 300,
-    });
+    final VideoEditText videoEditText = VideoEditText(
+        text: 'Vigoplace', videoPath: videoFile.path, x: 0, y: 1540);
+    final a = await _videoEditPlugin.addTextToVideo(videoEditText);
     return a;
-  }
-
-  Future<File?> doShapes({File? video}) async {
-    late File videoFile;
-    if (video != null) {
-      videoFile = video;
-    } else {
-      videoFile = await getFile('assets/test.mp4');
-    }
-
-    const shapeColor = Colors.black;
-    String hex = "0x${shapeColor.value.toRadixString(16).substring(2)}";
-    final a = await _videoEditPlugin.addShapesToVideo({
-      "videoPath": videoFile.path,
-      "color": hex,
-    });
-    return a;
-  }
-
-  Future<File?> doAll() async {
-    final a = await doShapes();
-    final b = await doImage(video: a);
-    final c = await doText(video: b);
-    return c;
   }
 
   @override
@@ -166,7 +140,7 @@ class _HomePageState extends State<HomePage> {
               if (value != null) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => VideoApp(file: value),
+                    builder: (context) => VideoApp(file: File(value)),
                   ),
                 );
               }
@@ -186,34 +160,6 @@ class _HomePageState extends State<HomePage> {
               }
             }),
             child: const Icon(Icons.edit),
-          ),
-          const SizedBox(width: 20),
-          FloatingActionButton(
-            heroTag: '3',
-            onPressed: () => doShapes().then((value) {
-              if (value != null) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => VideoApp(file: value),
-                  ),
-                );
-              }
-            }),
-            child: const Icon(Icons.shape_line),
-          ),
-          const SizedBox(width: 20),
-          FloatingActionButton(
-            heroTag: '4',
-            onPressed: () => doAll().then((value) {
-              if (value != null) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => VideoApp(file: value),
-                  ),
-                );
-              }
-            }),
-            child: const Icon(Icons.all_out),
           ),
         ],
       ),

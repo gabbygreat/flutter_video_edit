@@ -44,4 +44,7 @@ abstract class VideoEditPlatform extends PlatformInterface {
   Future<File?> addShapesToVideo(Map<String, dynamic> data) {
     throw UnimplementedError('addShapesToVideo() has not been implemented.');
   }
+  Future<String?> addImageToVideo2(Map<String, dynamic> data) {
+    throw UnimplementedError('addImageToVideo() has not been implemented.');
+  }
 }

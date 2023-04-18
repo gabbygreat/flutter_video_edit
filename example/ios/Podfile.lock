@@ -1,21 +1,61 @@
 PODS:
   - Flutter (1.0.0)
+  - image_picker_ios (0.0.1):
+    - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - PromiseKit (6.18.1):
+    - PromiseKit/CorePromise (= 6.18.1)
+    - PromiseKit/Foundation (= 6.18.1)
+    - PromiseKit/UIKit (= 6.18.1)
+  - PromiseKit/CorePromise (6.18.1)
+  - PromiseKit/Foundation (6.18.1):
+    - PromiseKit/CorePromise
+  - PromiseKit/UIKit (6.18.1):
+    - PromiseKit/CorePromise
+  - share_plus (0.0.1):
+    - Flutter
   - video_edit (0.0.1):
+    - Flutter
+    - PromiseKit
+  - video_player_avfoundation (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/ios`)
+  - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - video_edit (from `.symlinks/plugins/video_edit/ios`)
+  - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
+
+SPEC REPOS:
+  trunk:
+    - PromiseKit
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  image_picker_ios:
+    :path: ".symlinks/plugins/image_picker_ios/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/ios"
+  share_plus:
+    :path: ".symlinks/plugins/share_plus/ios"
   video_edit:
     :path: ".symlinks/plugins/video_edit/ios"
+  video_player_avfoundation:
+    :path: ".symlinks/plugins/video_player_avfoundation/ios"
 
 SPEC CHECKSUMS:
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
-  video_edit: 113720f3ead8727d6a7a8f44c5d6e933e2160480
+  image_picker_ios: 4a8aadfbb6dc30ad5141a2ce3832af9214a705b5
+  path_provider_foundation: c68054786f1b4f3343858c1e1d0caaded73f0be9
+  PromiseKit: 49d70c53d5d20e346beaea4b276b5dd2ab446bb4
+  share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
+  video_edit: 92e20f89477353535bcf401eaa0a7a3bf3dac8e1
+  video_player_avfoundation: 81e49bb3d9fb63dccf9fa0f6d877dc3ddbeac126
 
 PODFILE CHECKSUM: ef19549a9bc3046e7bb7d2fab4d021637c0c58a3
 

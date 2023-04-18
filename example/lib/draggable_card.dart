@@ -59,7 +59,7 @@ class _DraggableWidgetState extends State<DraggableWidget>
     if (widget.offset != null) {
       _dragAlignment = Alignment(widget.offset!.dx, widget.offset!.dy);
     } else {
-      _dragAlignment = const Alignment(1, -0.2);
+      _dragAlignment = const Alignment(0, -0.2);
     }
 
     _controller = AnimationController.unbounded(vsync: this)
@@ -77,12 +77,13 @@ class _DraggableWidgetState extends State<DraggableWidget>
     final size = MediaQuery.of(context).size;
     return GestureDetector(
       onPanStart: (details) => _controller.stop(canceled: true),
-      onPanUpdate: (details) => setState(
-        () => _dragAlignment += Alignment(
-          details.delta.dx / (size.width / 2),
-          details.delta.dy / (size.height / 2),
-        ),
-      ),
+      onPanUpdate: (details) {
+        widget.onMove(details.localPosition.dx, details.localPosition.dy);
+        setState(() => _dragAlignment += Alignment(
+              details.delta.dx / (size.width / 2),
+              details.delta.dy / (size.height / 2),
+            ));
+      },
       onPanEnd: (details) =>
           _runAnimation(details.velocity.pixelsPerSecond, size),
       child: Align(

@@ -118,7 +118,7 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
     commands.add("-i")
     commands.add(imagePath)
     commands.add("-filter_complex")
-    commands.add("[1:v]scale=100:-1[ovrl], [0:v][ovrl]overlay=$x:$y")
+    commands.add("[1:v]scale=200:-1[ovrl], [0:v][ovrl]overlay=$x:$y")
     commands.add("-codec:a")
     commands.add("copy")
     commands.add("-preset")
@@ -154,7 +154,7 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
     commands.add("-i")
     commands.add(videoPath)
     commands.add("-vf")
-    commands.add("drawtext=fontfile=/system/fonts/Roboto-Regular.ttf:text='$text':fontcolor=red:fontsize=50:x=$x:y=$y")
+    commands.add("drawtext=fontfile=/system/fonts/Roboto-Regular.ttf:text='$text':fontcolor=red:fontsize=100:x=$x:y=$y")
     commands.add("-codec:a")
     commands.add("copy")
     commands.add("-preset")
@@ -190,8 +190,6 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
     val current = LocalDateTime.now().format(formatter)
 
     val outputPath = "${context.cacheDir}/$current.mp4"
-
-    Log.i("GABBY GREAT",color)
 
     val commands = ArrayList<String>()
     commands.add("-i")

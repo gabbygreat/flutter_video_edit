@@ -1,11 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_edit/video_edit.dart';
+import 'package:video_edit/video_edit_model.dart';
 import 'package:video_edit_example/draggable_card.dart';
 import 'package:video_edit_example/drawing/drawing_canvas.dart';
+import 'package:video_edit_example/riverpod/notifier.dart';
+import 'package:video_edit_example/riverpod/state_model.dart';
 import 'package:video_player/video_player.dart';
 
 import 'drawing/model.dart';
@@ -13,27 +17,29 @@ import 'dart:ui' as ui;
 
 enum VideoEditType { none, image, text, emoji, draw }
 
-class VideoEditScreen extends StatefulWidget {
+class VideoEditScreen extends ConsumerStatefulWidget {
   final File file;
   const VideoEditScreen({super.key, required this.file});
 
   @override
-  State<VideoEditScreen> createState() => _VideoEditScreenState();
+  ConsumerState<VideoEditScreen> createState() => _VideoEditScreenState();
 }
 
-class _VideoEditScreenState extends State<VideoEditScreen> {
+class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
   late VideoPlayerController _controller;
   final _videoEditPlugin = VideoEdit();
   VideoEditType videoEditType = VideoEditType.none;
   FocusNode focusNode = FocusNode();
   late TextEditingController _textEditingController;
+  final videoEditNotifierProvider =
+      StateNotifierProvider((ref) => VideoEditNotifier([]));
 
-  List<XFile> imageFiles = [];
+  late double videoHeight;
+  late double videoWidth;
 
   List<DraggableWidget> widgetList = [];
 
   //FOR PAINT
-  List<DraggableWidget> fakeWidgetList = [];
 
   final selectedColor = ValueNotifier(Colors.black);
   final drawingMode = ValueNotifier(DrawingMode.pencil);
@@ -51,6 +57,8 @@ class _VideoEditScreenState extends State<VideoEditScreen> {
     _controller = VideoPlayerController.file(widget.file)
       ..setLooping(true)
       ..initialize().then((_) {
+        videoWidth = _controller.value.size.width;
+        videoHeight = _controller.value.size.height;
         setState(() {});
       })
       ..play();
@@ -68,14 +76,29 @@ class _VideoEditScreenState extends State<VideoEditScreen> {
 
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
-    imageFiles.add(image);
+    var decodedImage =
+        await decodeImageFromList(File(image.path).readAsBytesSync());
+
+    final test = VideoStateModel(
+        imagePath: image.path,
+        videoPath: widget.file.path,
+        x: decodedImage.width ~/ 2,
+        y: decodedImage.height ~/ 2,
+        type: FFMPegType.image,
+        date: DateTime.now());
+    ref.read(videoEditNotifierProvider.notifier).addToList(test);
+
     widgetList.add(
       DraggableWidget(
-        onMove: (x, y) {},
+        onMove: (x, y) {
+          ref
+              .read(videoEditNotifierProvider.notifier)
+              .updatePosition(test, x, y);
+        },
         child: Image.file(
           File(image.path),
-          height: 100,
-          width: 100,
+          height: 200,
+          width: 200,
         ),
       ),
     );
@@ -86,15 +109,29 @@ class _VideoEditScreenState extends State<VideoEditScreen> {
   void addText() {
     focusNode.unfocus();
     if (_textEditingController.text.isNotEmpty) {
+      final test = VideoStateModel(
+          text: _textEditingController.text,
+          videoPath: widget.file.path,
+          x: 0,
+          y: 0,
+          type: FFMPegType.text,
+          date: DateTime.now());
+      ref.read(videoEditNotifierProvider.notifier).addToList(test);
+
       widgetList.add(
         DraggableWidget(
           child: Text(
             _textEditingController.text,
             style: const TextStyle(fontSize: 50),
           ),
-          onMove: (x, y) {},
+          onMove: (x, y) {
+            ref
+                .read(videoEditNotifierProvider.notifier)
+                .updatePosition(test, x, y);
+          },
         ),
       );
+
       _textEditingController.clear();
     }
   }
@@ -105,16 +142,34 @@ class _VideoEditScreenState extends State<VideoEditScreen> {
   }
 
   Future<void> shareEdit() async {
-    late File? file;
-    for (var i in imageFiles) {
-      file = await _videoEditPlugin.addImageToVideo({
-        "imagePath": i.path,
-        "videoPath": widget.file.path,
-        "x": 500,
-        "y": 100,
-      });
+    File? file;
+    for (var i in ref.read(videoEditNotifierProvider.notifier).getList()) {
+      switch (i.type) {
+        case FFMPegType.image:
+          file =
+              await _videoEditPlugin.addImageToVideo(VideoEditImage.fromJson({
+            "imagePath": i.imagePath,
+            "videoPath": file == null ? i.videoPath : file.path,
+            "x": i.x,
+            "y": i.y,
+          }));
+          break;
+        case FFMPegType.text:
+          file = await _videoEditPlugin.addTextToVideo(VideoEditText.fromJson({
+            "text": i.text!,
+            "videoPath": file == null ? i.videoPath : file.path,
+            "x": i.x,
+            "y": i.y,
+          }));
+          break;
+        default:
+      }
     }
-    Share.shareXFiles([XFile(file!.path)]);
+    if (file == null) {
+      Share.shareXFiles([XFile(widget.file.path)]);
+      return;
+    }
+    Share.shareXFiles([XFile(file.path)]);
   }
 
   @override
@@ -252,7 +307,7 @@ class _VideoEditScreenState extends State<VideoEditScreen> {
                                   videoEditType = VideoEditType.none;
                                 } else {
                                   videoEditType = VideoEditType.draw;
-                                  fakeWidgetList.clear();
+                                  allSketches.value.clear();
                                 }
                                 setState(() {});
                               },

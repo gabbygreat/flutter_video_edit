@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -49,5 +50,13 @@ class MethodChannelVideoEdit extends VideoEditPlatform {
 
     if (level == null) return null;
     return File(level);
+  }
+
+  @override
+  Future<String?> addImageToVideo2(Map<String, dynamic> data) async {
+    final outputVideoPath =
+        await methodChannel.invokeMethod<String?>('addImageToVideo2', data);
+    log('Output video path: $outputVideoPath');
+    return outputVideoPath;
   }
 }

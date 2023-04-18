@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'video_edit_model.dart';
 import 'video_edit_platform_interface.dart';
 
 class VideoEdit {
@@ -11,15 +12,19 @@ class VideoEdit {
     return VideoEditPlatform.instance.getBatteryLevel();
   }
 
-  Future<File?> addImageToVideo(Map<String, dynamic> data) {
-    return VideoEditPlatform.instance.addImageToVideo(data);
+  Future<File?> addImageToVideo(VideoEditImage data) {
+    return VideoEditPlatform.instance.addImageToVideo(data.toMap());
   }
 
-  Future<File?> addTextToVideo(Map<String, dynamic> data) {
-    return VideoEditPlatform.instance.addTextToVideo(data);
+  Future<File?> addTextToVideo(VideoEditText data) {
+    return VideoEditPlatform.instance.addTextToVideo(data.toMap());
   }
 
   Future<File?> addShapesToVideo(Map<String, dynamic> data) {
     return VideoEditPlatform.instance.addShapesToVideo(data);
+  } 
+  Future<String?> addImageToVideo2(Map<String, dynamic> data) {
+    return VideoEditPlatform.instance.addImageToVideo2(data);
   }
+  
 }
