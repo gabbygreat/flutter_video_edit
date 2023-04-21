@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:video_edit/video_edit.dart';
 import 'package:video_edit/video_edit_model.dart';
 import 'package:video_edit_example/edit_video.dart';
@@ -42,7 +41,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _videoEditPlugin = VideoEdit();
-  XFile? edittedVideo;
+  File? videoFile;
 
   Future<File> getFile(String assetPath) async {
     ByteData bytes = await rootBundle.load(assetPath); //load sound from assets
@@ -60,7 +59,7 @@ class _HomePageState extends State<HomePage> {
     return videoFile;
   }
 
-  Future<String?> doImage({File? video}) async {
+  Future<File?> doImage({File? video}) async {
     File imageFile = await getFile('assets/images.jpeg');
     late File videoFile;
     if (video != null) {
@@ -68,24 +67,24 @@ class _HomePageState extends State<HomePage> {
     } else {
       videoFile = await getFile('assets/test.mp4');
     }
-    final VideoEditImage videoEditImage = VideoEditImage(
-        imagePath: imageFile.path, videoPath: videoFile.path, x: 500, y: 100);
-    var a = await _videoEditPlugin.addImageToVideo2(videoEditImage.toMap());
+    final VideoEditModel videoEditImage = VideoEditModel(
+      type: VideoEditTypes.image,
+      videoPath: videoFile.path,
+      text: TextModel(
+        text: "GabbyGreat",
+        textX: 500,
+        textY: 300,
+      ),
+    );
+    var a = await _videoEditPlugin.addImageToVideo([videoEditImage]);
     debugPrint("THIS IS>>>>>>>>$a ");
     return a;
   }
 
-  Future<File?> doText({File? video}) async {
-    late File videoFile;
-    if (video != null) {
-      videoFile = video;
-    } else {
-      videoFile = await getFile('assets/test.mp4');
-    }
-    final VideoEditText videoEditText = VideoEditText(
-        text: 'Vigoplace', videoPath: videoFile.path, x: 0, y: 1540);
-    final a = await _videoEditPlugin.addTextToVideo(videoEditText);
-    return a;
+  void editVideo(File newFile) {
+    setState(() {
+      videoFile = newFile;
+    });
   }
 
   @override
@@ -105,9 +104,8 @@ class _HomePageState extends State<HomePage> {
                 getFile('assets/test.mp4').then(
                   (value) => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => VideoEditScreen(
-                        file: value,
-                      ),
+                      builder: (context) =>
+                          VideoEditScreen(file: value, editVideo: editVideo),
                     ),
                   ),
                 );
@@ -122,15 +120,15 @@ class _HomePageState extends State<HomePage> {
         children: [
           FloatingActionButton(
             heroTag: '0',
-            onPressed: () => doNormal().then((value) {
-              if (value != null) {
+            onPressed: () {
+              if (videoFile != null) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => VideoApp(file: value),
+                    builder: (context) => VideoApp(file: videoFile!),
                   ),
                 );
               }
-            }),
+            },
             child: const Icon(Icons.play_arrow),
           ),
           const SizedBox(width: 20),
@@ -140,26 +138,12 @@ class _HomePageState extends State<HomePage> {
               if (value != null) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => VideoApp(file: File(value)),
-                  ),
-                );
-              }
-            }),
-            child: const Icon(Icons.image),
-          ),
-          const SizedBox(width: 20),
-          FloatingActionButton(
-            heroTag: '2',
-            onPressed: () => doText().then((value) {
-              if (value != null) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
                     builder: (context) => VideoApp(file: value),
                   ),
                 );
               }
             }),
-            child: const Icon(Icons.edit),
+            child: const Icon(Icons.image),
           ),
         ],
       ),

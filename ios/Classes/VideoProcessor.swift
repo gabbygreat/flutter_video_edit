@@ -2,89 +2,27 @@ import AVFoundation
 import CoreMedia
 import PromiseKit
 
-class VideoProcessor {
+class Position {
+    var x: Double
+    var y: Double
     
-    func processVideo(atPath path: String, withText text: String, andImage image: UIImage) -> Promise<String?> {
-        return Promise { seal in
-            let asset: AVAsset = AVAsset(url:  URL(fileURLWithPath: path))
-
-            let composition: AVMutableComposition = AVMutableComposition()
-            guard let videoTrack: AVMutableCompositionTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
-                let audioTrack: AVMutableCompositionTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid),
-                let assetVideoTrack: AVAssetTrack = asset.tracks(withMediaType: .video).first,
-                let assetAudioTrack: AVAssetTrack = asset.tracks(withMediaType: .audio).first else {
-                seal.fulfill(nil)
-                return
-            }
-
-            do {
-                try videoTrack.insertTimeRange(CMTimeRangeMake(start: .zero, duration: asset.duration), of: assetVideoTrack, at: .zero)
-                try audioTrack.insertTimeRange(CMTimeRangeMake(start: .zero, duration: asset.duration), of: assetAudioTrack, at: .zero)
-            } catch {
-                seal.fulfill(nil)
-            }
-
-            let videoSize: CGSize = assetVideoTrack.naturalSize
-
-            let parentLayer: CALayer = CALayer()
-            parentLayer.frame = CGRect(origin: .zero, size: videoSize)
-
-            let imageLayer: CALayer = CALayer()
-            imageLayer.contents = image.cgImage
-            imageLayer.frame = CGRect(origin: .zero, size: videoSize)
-            parentLayer.addSublayer(imageLayer)
-
-            let textLayer: CATextLayer = CATextLayer()
-            textLayer.string = text
-            textLayer.font = UIFont(name: "Helvetica-Bold", size: 40)
-            textLayer.alignmentMode = .center
-            textLayer.frame = CGRect(x: 0, y: videoSize.height - 60, width: videoSize.width, height: 60)
-            parentLayer.addSublayer(textLayer)
-
-            let videoLayer: CALayer = CALayer()
-            videoLayer.frame = CGRect(origin: .zero, size: videoSize)
-            let videoAssetTrack: AVMutableCompositionTrack = composition.tracks(withMediaType: .video).first!
-            let videoLayerInstruction: AVMutableVideoCompositionLayerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoAssetTrack)
-            videoLayerInstruction.setTransform(videoAssetTrack.preferredTransform, at: .zero)
-            videoLayerInstruction.setOpacity(0.0, at: asset.duration)
-            let videoCompositionInstruction: AVMutableVideoCompositionInstruction = AVMutableVideoCompositionInstruction()
-            videoCompositionInstruction.timeRange = CMTimeRange(start: .zero, duration: asset.duration)
-            videoCompositionInstruction.layerInstructions = [videoLayerInstruction]
-            let videoComposition: AVMutableVideoComposition = AVMutableVideoComposition()
-            videoComposition.renderSize = videoSize
-            videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
-            videoComposition.instructions = [videoCompositionInstruction]
-            videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
-
-            guard let exportSession: AVAssetExportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
-                seal.fulfill(nil)
-                return
-            }
-
-            let outputURL: URL = URL(fileURLWithPath: NSTemporaryDirectory() + UUID().uuidString + ".mp4")
-            exportSession.outputURL = outputURL
-            exportSession.outputFileType = .mp4
-            exportSession.videoComposition = videoComposition
-
-            let dispatchGroup: DispatchGroup = DispatchGroup()
-            dispatchGroup.enter()
-
-            exportSession.exportAsynchronously(completionHandler: {
-                dispatchGroup.leave()
-            })
-
-            dispatchGroup.wait()
-
-            if exportSession.status == .completed {
-                seal.fulfill(outputURL.path)
-            } else {
-                seal.fulfill(nil)
-            }
-        
-        }
+    init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
     }
+    
+    func setPosition(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
+    
+    func getPosition() -> (Double, Double) {
+        return (x, y)
+    }
+}
 
- func addImageToVideo(atPath path: String, withText text: String, andImage image: UIImage, atFrame imageFrame: CGRect) -> Promise<String?> {
+class VideoProcessor {
+    func addImageToVideo(atPath path: String, withText text: String?, andImage image: UIImage?, atFrame imageFrame: CGRect?, atPosition textPosition: Position?) -> Promise<String?> {
         return Promise { seal in
             let asset: AVAsset = AVAsset(url:  URL(fileURLWithPath: path))
 
@@ -110,25 +48,6 @@ class VideoProcessor {
             let parentLayer: CALayer = CALayer()
             parentLayer.frame = CGRect(origin: .zero, size: videoSize)
             
-            let label = UILabel()
-            label.text = text
-            label.font = UIFont.systemFont(ofSize: 50)
-            label.sizeToFit()
-
-            let textLayer = CATextLayer()
-            textLayer.string = label.text
-            textLayer.font = label.font.fontName as CFTypeRef?
-            textLayer.fontSize = label.font.pointSize
-            textLayer.alignmentMode = .center
-            textLayer.foregroundColor = UIColor.black.cgColor
-
-            textLayer.frame = CGRect(x: videoSize.width/2, y: videoSize.height/2, width: label.frame.width+5, height: label.frame.height)
-
-
-            let imageLayer: CALayer = CALayer()
-            imageLayer.contents = image.cgImage
-            imageLayer.frame = imageFrame
-            
             let videoLayer: CALayer = CALayer()
             videoLayer.frame = CGRect(origin: .zero, size: videoSize)
             let videoAssetTrack: AVMutableCompositionTrack = composition.tracks(withMediaType: .video).first!
@@ -143,11 +62,31 @@ class VideoProcessor {
             videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
             videoComposition.instructions = [videoCompositionInstruction]
             
-            
-             parentLayer.addSublayer(videoLayer)
+            parentLayer.addSublayer(videoLayer)
             videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
-            parentLayer.addSublayer(imageLayer)
-            parentLayer.addSublayer(textLayer)
+            
+            if text != nil{
+                let label = UILabel()
+                label.text = text
+                label.font = UIFont.systemFont(ofSize: 50)
+                label.sizeToFit()
+                let textLayer: CATextLayer = CATextLayer()
+                textLayer.string = label.text
+                textLayer.font = label.font.fontName as CFTypeRef?
+                textLayer.fontSize = label.font.pointSize
+                textLayer.alignmentMode = .center
+                textLayer.foregroundColor = UIColor.black.cgColor
+
+                textLayer.frame = CGRect(x: textPosition!.x, y: textPosition!.y, width: label.frame.width + 5.0, height: label.frame.height)
+                parentLayer.addSublayer(textLayer)
+            }
+            
+            if image != nil{
+                let imageLayer: CALayer = CALayer()
+                imageLayer.contents = image!.cgImage
+                imageLayer.frame = imageFrame!
+                parentLayer.addSublayer(imageLayer)
+            }
             
 
             guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {

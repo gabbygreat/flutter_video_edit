@@ -19,7 +19,12 @@ enum VideoEditType { none, image, text, emoji, draw }
 
 class VideoEditScreen extends ConsumerStatefulWidget {
   final File file;
-  const VideoEditScreen({super.key, required this.file});
+  final Function editVideo;
+  const VideoEditScreen({
+    super.key,
+    required this.file,
+    required this.editVideo,
+  });
 
   @override
   ConsumerState<VideoEditScreen> createState() => _VideoEditScreenState();
@@ -27,8 +32,8 @@ class VideoEditScreen extends ConsumerStatefulWidget {
 
 class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
   late VideoPlayerController _controller;
-  final _videoEditPlugin = VideoEdit();
   VideoEditType videoEditType = VideoEditType.none;
+  final _videoEditPlugin = VideoEdit();
   FocusNode focusNode = FocusNode();
   late TextEditingController _textEditingController;
   final videoEditNotifierProvider =
@@ -40,7 +45,6 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
   List<DraggableWidget> widgetList = [];
 
   //FOR PAINT
-
   final selectedColor = ValueNotifier(Colors.black);
   final drawingMode = ValueNotifier(DrawingMode.pencil);
   final filled = ValueNotifier<bool>(false);
@@ -80,17 +84,20 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
         await decodeImageFromList(File(image.path).readAsBytesSync());
 
     final test = VideoStateModel(
-        imagePath: image.path,
-        videoPath: widget.file.path,
-        x: decodedImage.width ~/ 2,
-        y: decodedImage.height ~/ 2,
-        type: FFMPegType.image,
-        date: DateTime.now());
+      imagePath: image.path,
+      videoPath: widget.file.path,
+      x: decodedImage.width / 2,
+      y: decodedImage.height / 2,
+      type: FFMPegType.image,
+      date: DateTime.now(),
+    );
     ref.read(videoEditNotifierProvider.notifier).addToList(test);
 
     widgetList.add(
       DraggableWidget(
         onMove: (x, y) {
+          print(x);
+          print(y);
           ref
               .read(videoEditNotifierProvider.notifier)
               .updatePosition(test, x, y);
@@ -102,7 +109,6 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
         ),
       ),
     );
-    // videoEditType = VideoEditType.image;
     setState(() {});
   }
 
@@ -141,35 +147,40 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
     setState(() {});
   }
 
-  Future<void> shareEdit() async {
-    File? file;
-    for (var i in ref.read(videoEditNotifierProvider.notifier).getList()) {
-      switch (i.type) {
-        case FFMPegType.image:
-          file =
-              await _videoEditPlugin.addImageToVideo(VideoEditImage.fromJson({
-            "imagePath": i.imagePath,
-            "videoPath": file == null ? i.videoPath : file.path,
-            "x": i.x,
-            "y": i.y,
-          }));
-          break;
-        case FFMPegType.text:
-          file = await _videoEditPlugin.addTextToVideo(VideoEditText.fromJson({
-            "text": i.text!,
-            "videoPath": file == null ? i.videoPath : file.path,
-            "x": i.x,
-            "y": i.y,
-          }));
-          break;
-        default:
+  Future<void> saveEdit() async {
+    final test = ref.read(videoEditNotifierProvider.notifier).getList().map(
+      (e) {
+        late VideoEditModel a;
+        if (e.type == FFMPegType.image) {
+          a = VideoEditModel(
+            videoPath: widget.file.path,
+            type: VideoEditTypes.image,
+            image: ImageModel(
+              imagePath: e.imagePath,
+              imageX: e.x,
+              imageY: e.y,
+            ),
+          );
+        } else if (e.type == FFMPegType.text) {
+          a = VideoEditModel(
+            videoPath: widget.file.path,
+            type: VideoEditTypes.text,
+            text: TextModel(
+              text: e.text,
+              textX: e.x,
+              textY: e.y,
+            ),
+          );
+        }
+        return a;
+      },
+    ).toList();
+    _videoEditPlugin.addImageToVideo(test).then((value) {
+      if (value != null) {
+        widget.editVideo(value);
       }
-    }
-    if (file == null) {
-      Share.shareXFiles([XFile(widget.file.path)]);
-      return;
-    }
-    Share.shareXFiles([XFile(file.path)]);
+      Navigator.of(context).pop();
+    });
   }
 
   @override
@@ -327,8 +338,8 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
             ),
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () async => await shareEdit(),
-            child: const Icon(Icons.share),
+            onPressed: () async => await saveEdit(),
+            child: const Icon(Icons.save),
           ),
           bottomSheet: videoEditType == VideoEditType.draw
               ? Container(

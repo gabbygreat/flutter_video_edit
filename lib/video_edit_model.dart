@@ -1,67 +1,72 @@
-class VideoEditText {
-  final String text;
-  final String videoPath;
-  final int x;
-  final int y;
+import 'dart:io';
 
-  VideoEditText({
-    required this.text,
-    required this.videoPath,
-    required this.x,
-    required this.y,
+enum VideoEditTypes { image, text }
+
+class ImageModel {
+  final String? imagePath;
+  final double? imageX;
+  final double? imageY;
+
+  ImageModel({
+    required this.imagePath,
+    required this.imageX,
+    required this.imageY,
   });
-
-  static VideoEditText fromJson(Map<String, dynamic> data) {
-    return VideoEditText(
-      text: data['text'],
-      videoPath: data['videoPath'],
-      x: data['x'] as int,
-      y: data['y'] as int,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      "text": text,
-      "videoPath": videoPath,
-      "x": x,
-      "y": y,
-    };
-  }
 }
 
-class VideoEditImage {
-  final String imagePath;
+class TextModel {
+  final String? text;
+  final double? textX;
+  final double? textY;
+
+  TextModel({
+    required this.text,
+    required this.textX,
+    required this.textY,
+  });
+}
+
+class VideoEditModel {
   final String videoPath;
-  final int x;
-  final int y;
+  final ImageModel? image;
+  final TextModel? text;
+  final VideoEditTypes type;
 
-  final String text;
+  VideoEditModel({
+    this.image,
+    this.text,
+    required this.videoPath,
+    required this.type,
+  });
 
-  VideoEditImage(
-      {required this.imagePath,
-      required this.videoPath,
-      required this.x,
-      required this.y,
-      this.text = "Gabriel"});
-
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
+    if (type == VideoEditTypes.image) {
+      assert(image?.imagePath != null, "imagePath must not be null");
+      assert(File(image!.imagePath!).existsSync(), "Image file must exist");
+      assert(image?.imageX != null,
+          "Since imagePath is not null, X-position must not be null");
+      assert(image?.imageY != null,
+          "Since imagePath is not null, Y-position must not be null");
+    } else if (type == VideoEditTypes.text) {
+      assert(text?.text != null, "Text cannot be null");
+      assert(text!.text!.isNotEmpty, "text cannot be empty");
+      assert(text?.textX != null,
+          "Since text is not null, X-position must not be null");
+      assert(text?.textY != null,
+          "Since imagePath is not null, Y-position must not be null");
+    }
+    assert(image != null || text != null,
+        " One of two image or text must be null");
+    assert(image == null || text == null,
+        " One of two image or text must be null");
     return {
-      "imagePath": imagePath,
       "videoPath": videoPath,
-      "x": x,
-      "y": y,
-      "text": text,
+      "text": text?.text,
+      "textX": text?.textX,
+      "textY": text?.textY,
+      "imagePath": image?.imagePath,
+      "imageX": image?.imageX,
+      "imageY": image?.imageY,
     };
-  }
-
-  static VideoEditImage fromJson(Map<String, dynamic> data) {
-    return VideoEditImage(
-      imagePath: data['imagePath'],
-      videoPath: data['videoPath'],
-      x: data['x'] as int,
-      text: data['text'] ?? "Gabriel",
-      y: data['y'] as int,
-    );
   }
 }

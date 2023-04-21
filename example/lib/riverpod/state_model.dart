@@ -4,8 +4,8 @@ class VideoStateModel {
   final String? imagePath;
   final String? text;
   final String videoPath;
-  final int x;
-  final int y;
+  final double x;
+  final double y;
   final DateTime date;
   final FFMPegType type;
 

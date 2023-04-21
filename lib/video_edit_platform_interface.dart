@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:video_edit/video_edit_model.dart';
 
 import 'video_edit_method_channel.dart';
 
@@ -33,18 +34,7 @@ abstract class VideoEditPlatform extends PlatformInterface {
     throw UnimplementedError('getBatteryLevel() has not been implemented.');
   }
 
-  Future<File?> addImageToVideo(Map<String, dynamic> data) {
-    throw UnimplementedError('addImageToVideo() has not been implemented.');
-  }
-
-  Future<File?> addTextToVideo(Map<String, dynamic> data) {
-    throw UnimplementedError('addTextToVideo() has not been implemented.');
-  }
-
-  Future<File?> addShapesToVideo(Map<String, dynamic> data) {
-    throw UnimplementedError('addShapesToVideo() has not been implemented.');
-  }
-  Future<String?> addImageToVideo2(Map<String, dynamic> data) {
+  Future<File?> addImageToVideo(List<VideoEditModel> data) {
     throw UnimplementedError('addImageToVideo() has not been implemented.');
   }
 }

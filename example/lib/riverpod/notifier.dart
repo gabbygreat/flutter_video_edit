@@ -21,14 +21,18 @@ class VideoEditNotifier extends StateNotifier<List<VideoStateModel>> {
 
   void updatePosition(VideoStateModel videoStateModel, double x, double y) {
     var test = VideoStateModel(
-        imagePath: videoStateModel.imagePath,
-        videoPath: videoStateModel.videoPath,
-        text: videoStateModel.text,
-        date: videoStateModel.date,
-        type: videoStateModel.type,
-        x: x.toInt(),
-        y: y.toInt());
-    state = state.updateWhere((p0) => p0.date == videoStateModel.date, test);
+      imagePath: videoStateModel.imagePath,
+      videoPath: videoStateModel.videoPath,
+      text: videoStateModel.text,
+      date: videoStateModel.date,
+      type: videoStateModel.type,
+      x: x,
+      y: y,
+    );
+    state = state.updateWhere(
+      (p0) => p0.date == videoStateModel.date,
+      test,
+    );
   }
 
   List<VideoStateModel> getList() {

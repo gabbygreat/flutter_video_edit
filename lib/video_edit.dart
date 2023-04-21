@@ -12,19 +12,8 @@ class VideoEdit {
     return VideoEditPlatform.instance.getBatteryLevel();
   }
 
-  Future<File?> addImageToVideo(VideoEditImage data) {
-    return VideoEditPlatform.instance.addImageToVideo(data.toMap());
-  }
-
-  Future<File?> addTextToVideo(VideoEditText data) {
-    return VideoEditPlatform.instance.addTextToVideo(data.toMap());
-  }
-
-  Future<File?> addShapesToVideo(Map<String, dynamic> data) {
-    return VideoEditPlatform.instance.addShapesToVideo(data);
-  } 
-  Future<String?> addImageToVideo2(Map<String, dynamic> data) {
-    return VideoEditPlatform.instance.addImageToVideo2(data);
+  Future<File?> addImageToVideo(List<VideoEditModel> data) {
+    return VideoEditPlatform.instance.addImageToVideo(data);
   }
   
 }

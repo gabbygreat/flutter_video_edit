@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:video_edit/video_edit.dart';
+import 'package:video_edit/video_edit_model.dart';
 import 'package:video_edit/video_edit_platform_interface.dart';
 import 'package:video_edit/video_edit_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
@@ -15,17 +16,7 @@ class MockVideoEditPlatform
   Future<int?> getBatteryLevel() => Future.value(1);
 
   @override
-  Future<File?> addImageToVideo(Map<String, dynamic> data) =>
-      Future.value(null);
-
-  @override
-  Future<File?> addTextToVideo(Map<String, dynamic> data) => Future.value(null);
-
-  @override
-  Future<File?> addShapesToVideo(Map<String, dynamic> data) =>
-      Future.value(null);
-  @override
-  Future<String?> addImageToVideo2(Map<String, dynamic> data) =>
+  Future<File?> addImageToVideo(List<VideoEditModel> data) =>
       Future.value(null);
 }
 

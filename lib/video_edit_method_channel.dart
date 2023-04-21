@@ -1,8 +1,8 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:video_edit/video_edit_model.dart';
 
 import 'video_edit_platform_interface.dart';
 
@@ -26,37 +26,28 @@ class MethodChannelVideoEdit extends VideoEditPlatform {
   }
 
   @override
-  Future<File?> addImageToVideo(Map<String, dynamic> data) async {
-    final level =
-        await methodChannel.invokeMethod<String?>('addImageToVideo', data);
-
-    if (level == null) return null;
-    return File(level);
-  }
-
-  @override
-  Future<File?> addTextToVideo(Map<String, dynamic> data) async {
-    final level =
-        await methodChannel.invokeMethod<String?>('addTextToVideo', data);
-
-    if (level == null) return null;
-    return File(level);
-  }
-
-  @override
-  Future<File?> addShapesToVideo(Map<String, dynamic> data) async {
-    final level =
-        await methodChannel.invokeMethod<String?>('addShapesToVideo', data);
-
-    if (level == null) return null;
-    return File(level);
-  }
-
-  @override
-  Future<String?> addImageToVideo2(Map<String, dynamic> data) async {
-    final outputVideoPath =
-        await methodChannel.invokeMethod<String?>('addImageToVideo2', data);
-    log('Output video path: $outputVideoPath');
-    return outputVideoPath;
+  Future<File?> addImageToVideo(List<VideoEditModel> data) async {
+    File? file;
+    for (var i in data) {
+      if (file == null) {
+        final a = await methodChannel.invokeMethod<String?>(
+            'addImageToVideo', i.toJson());
+        if (a == null) return null;
+        file = File(a);
+      } else {
+        final a = await methodChannel.invokeMethod<String?>('addImageToVideo', {
+          "videoPath": file.path,
+          "text": i.text?.text,
+          "textX": i.text?.textX,
+          "textY": i.text?.textY,
+          "imagePath": i.image?.imagePath,
+          "imageX": i.image?.imageX,
+          "imageY": i.image?.imageY,
+        });
+        if (a == null) return null;
+        file = File(a);
+      }
+    }
+    return file;
   }
 }

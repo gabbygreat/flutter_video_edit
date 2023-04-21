@@ -53,23 +53,13 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
         }
     } else if (call.method == "addImageToVideo"){
       val videoPath: String = call.argument("videoPath")?:""
-      val imagePath: String = call.argument("imagePath")?:""
-      val x: Int = call.argument("x")?:0
-      val y: Int = call.argument("y")?:0
-      val add = addImageToVideo(videoPath, imagePath, x, y)
-      result.success(add)
-    } else if (call.method == "addTextToVideo"){
-      val videoPath: String = call.argument("videoPath")?:""
-      val text: String = call.argument("text")?:""
-      val x: Int = call.argument("x")?:0
-      val y: Int = call.argument("y")?:0
-      val add = addTextToVideo(videoPath, text, x, y)
-      result.success(add)
-    } else if (call.method == "addShapesToVideo"){
-      val videoPath: String = call.argument("videoPath")?:""
-      val color: String = call.argument("color")?: "0xFF0000"
-
-      val add = addShapesToVideo(videoPath,color)
+      val imagePath: String? = call.argument("imagePath")
+      val text: String? = call.argument("text")
+      val imageX: Int? = call.argument("imageX")
+      val imageY: Int? = call.argument("imageY")
+      val textX: Int? = call.argument("imageX")
+      val textY: Int? = call.argument("imageY")
+      val add = addImageToVideo(videoPath, imagePath, text, imageX, imageY, textX, textY)
       result.success(add)
     } else{
       result.notImplemented()
@@ -92,10 +82,8 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
     return batteryLevel
   }
 
-
-
   @TargetApi(VERSION_CODES.O)
-  private fun addImageToVideo(videoPath: String, imagePath: String, x: Int, y: Int): String? {
+  private fun addImageToVideo(videoPath: String, imagePath: String?, text: String?, imageX: Int?, imageY: Int?, textX: Int?, textY: Int?): String? {
     val videoFile = File(videoPath)
     if (!videoFile.exists()) {
       Log.e(TAG, "addImageToVideo: Video file not found")
@@ -115,10 +103,22 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
     val commands = ArrayList<String>()
     commands.add("-i")
     commands.add(videoPath)
-    commands.add("-i")
-    commands.add(imagePath)
-    commands.add("-filter_complex")
-    commands.add("[1:v]scale=200:-1[ovrl], [0:v][ovrl]overlay=$x:$y")
+    if (text != null){
+      commands.add("-vf")
+      commands.add("drawtext=fontfile=/system/fonts/Roboto-Regular.ttf:text='$text':fontcolor=red:fontsize=100:x=$textX:y=$textY")
+    }
+    if (imagePath != null){
+      commands.add("-i")
+      commands.add(imagePath)
+      commands.add("-filter_complex")
+      commands.add("[1:v]scale=100:-1[ovrl], [0:v][ovrl]overlay=$imageX:$imageY")
+    }
+    // commands.add("-vf")
+    // commands.add("drawline=x1=50:y1=200:x2=300:y2=100:color=$color:thickness=5")
+    // commands.add("-vf")
+    // commands.add("drawcircle=x=50:y=250:r=50:color=$color:thickness=5")
+    // commands.add("-vf")
+    // commands.add("drawbox=x=50:y=200:w=200:h=100:color=$color:thickness=5")
     commands.add("-codec:a")
     commands.add("copy")
     commands.add("-preset")
@@ -136,7 +136,6 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
       null
     }
   }
-
 
   @TargetApi(VERSION_CODES.O)
   private fun addTextToVideo(videoPath: String, text: String, x: Int, y: Int): String? {
