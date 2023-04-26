@@ -62,8 +62,8 @@ class VideoEditModel {
     return {
       "videoPath": videoPath,
       "text": text?.text,
-      "textX": text?.textX,
-      "textY": text?.textY,
+      "textX": text?.textX?.toInt(),
+      "textY": text?.textY?.toInt(),
       "imagePath": image?.imagePath,
       "imageX": image?.imageX,
       "imageY": image?.imageY,

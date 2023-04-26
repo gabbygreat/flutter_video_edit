@@ -67,37 +67,37 @@ class DrawingAppCanvas extends StatelessWidget {
   }
 
   void onPointerUp(PointerUpEvent details, BuildContext context) {
-    final box = context.findRenderObject() as RenderBox;
-    allSketches.value = List<Sketch>.from(allSketches.value)
-      ..add(currentSketch.value!);
-    final maxX = allSketches.value.last.points.map((e) => e.dx).toList().max;
-    final minX = allSketches.value.last.points.map((e) => e.dx).toList().min;
+    // final box = context.findRenderObject() as RenderBox;
+    // allSketches.value = List<Sketch>.from(allSketches.value)
+    //   ..add(currentSketch.value!);
+    // final maxX = allSketches.value.last.points.map((e) => e.dx).toList().max;
+    // final minX = allSketches.value.last.points.map((e) => e.dx).toList().min;
 
-    final maxY = allSketches.value.last.points.map((e) => e.dy).toList().max;
-    final minY = allSketches.value.last.points.map((e) => e.dy).toList().min;
+    // final maxY = allSketches.value.last.points.map((e) => e.dy).toList().max;
+    // final minY = allSketches.value.last.points.map((e) => e.dy).toList().min;
 
-    Rect rect = Rect.fromPoints(Offset(minX, minY), Offset(maxX, maxY));
+    // Rect rect = Rect.fromPoints(Offset(minX, minY), Offset(maxX, maxY));
     // rect.s
 
-    final x = rect.topCenter.dx / box.size.width;
-    final y = rect.topCenter.dy / box.size.height;
+    // final x = rect.topCenter.dx / box.size.width;
+    // final y = rect.topCenter.dy / box.size.height;
 
-    widgetList.add(DraggableWidget(
-      onMove: (p0, p1) {},
-      offset: Offset(x, y),
-      child: Container(
-        constraints: BoxConstraints(
-          minHeight: rect.size.height,
-          minWidth: rect.size.width,
-        ),
-        color: Colors.red,
-        height: rect.size.height,
-        width: rect.size.width,
-        child: CustomPaint(
-          painter: sketchDrawing(allSketches.value.last),
-        ),
-      ),
-    ));
+    // widgetList.add(DraggableWidget(
+    //   onMove: (p0, p1) {},
+    //   offset: Offset(x, y),
+    //   child: Container(
+    //     constraints: BoxConstraints(
+    //       minHeight: rect.size.height,
+    //       minWidth: rect.size.width,
+    //     ),
+    //     color: Colors.red,
+    //     height: rect.size.height,
+    //     width: rect.size.width,
+    //     child: CustomPaint(
+    //       painter: sketchDrawing(allSketches.value.last),
+    //     ),
+    //   ),
+    // ));
   }
 
   @override

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:video_edit/video_edit.dart';
 import 'package:video_edit/video_edit_model.dart';
 import 'package:video_edit_example/draggable_card.dart';
@@ -96,12 +95,11 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
     widgetList.add(
       DraggableWidget(
         onMove: (x, y) {
-          print(x);
-          print(y);
           ref
               .read(videoEditNotifierProvider.notifier)
               .updatePosition(test, x, y);
         },
+        video: _controller.value.size,
         child: Image.file(
           File(image.path),
           height: 200,
@@ -116,25 +114,27 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
     focusNode.unfocus();
     if (_textEditingController.text.isNotEmpty) {
       final test = VideoStateModel(
-          text: _textEditingController.text,
-          videoPath: widget.file.path,
-          x: 0,
-          y: 0,
-          type: FFMPegType.text,
-          date: DateTime.now());
+        text: _textEditingController.text,
+        videoPath: widget.file.path,
+        x: 100,
+        y: 100,
+        type: FFMPegType.text,
+        date: DateTime.now(),
+      );
       ref.read(videoEditNotifierProvider.notifier).addToList(test);
 
       widgetList.add(
         DraggableWidget(
-          child: Text(
-            _textEditingController.text,
-            style: const TextStyle(fontSize: 50),
-          ),
+          video: _controller.value.size,
           onMove: (x, y) {
             ref
                 .read(videoEditNotifierProvider.notifier)
                 .updatePosition(test, x, y);
           },
+          child: Text(
+            _textEditingController.text,
+            style: const TextStyle(fontSize: 50),
+          ),
         ),
       );
 
@@ -175,6 +175,7 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
         return a;
       },
     ).toList();
+
     _videoEditPlugin.addImageToVideo(test).then((value) {
       if (value != null) {
         widget.editVideo(value);
@@ -203,7 +204,7 @@ class _VideoEditScreenState extends ConsumerState<VideoEditScreen> {
           }
         },
         child: Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: Colors.brown,
           resizeToAvoidBottomInset: false,
           body: SafeArea(
             child: Stack(

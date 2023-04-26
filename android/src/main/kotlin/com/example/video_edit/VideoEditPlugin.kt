@@ -55,10 +55,10 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
       val videoPath: String = call.argument("videoPath")?:""
       val imagePath: String? = call.argument("imagePath")
       val text: String? = call.argument("text")
-      val imageX: Int? = call.argument("imageX")
-      val imageY: Int? = call.argument("imageY")
-      val textX: Int? = call.argument("imageX")
-      val textY: Int? = call.argument("imageY")
+      val imageX: Double? = call.argument("imageX")
+      val imageY: Double? = call.argument("imageY")
+      val textX: Int? = call.argument("textX")
+      val textY: Int? = call.argument("textY")
       val add = addImageToVideo(videoPath, imagePath, text, imageX, imageY, textX, textY)
       result.success(add)
     } else{
@@ -71,6 +71,17 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   private fun getBatteryLevel(): Int {
+    val resources = context.resources
+    val displayMetrics = resources.displayMetrics
+    val screenWidthPx = displayMetrics.widthPixels
+    val screenHeightPx = displayMetrics.heightPixels
+    val screenDensity = displayMetrics.densityDpi
+    val screenWidthDp = screenWidthPx / (screenDensity / 160f)
+    val screenHeightDp = screenHeightPx / (screenDensity / 160f)
+
+    Log.e(TAG, "screenWidthDp $screenWidthDp")
+    Log.e(TAG, "screenHeightDp $screenHeightDp")
+
     val batteryLevel: Int = if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
       val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
       batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
@@ -83,27 +94,21 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
   }
 
   @TargetApi(VERSION_CODES.O)
-  private fun addImageToVideo(videoPath: String, imagePath: String?, text: String?, imageX: Int?, imageY: Int?, textX: Int?, textY: Int?): String? {
+  private fun addImageToVideo(videoPath: String, imagePath: String?, text: String?, imageX: Double?, imageY: Double?, textX: Int?, textY: Int?): String? {
     val videoFile = File(videoPath)
     if (!videoFile.exists()) {
       Log.e(TAG, "addImageToVideo: Video file not found")
       return null
     }
-
-    val imageFile = File(imagePath)
-    if (!imageFile.exists()) {
-      Log.e(TAG, "addImageToVideo: Image file not found")
-      return null
-    }
     val formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmssSSS")
     val current = LocalDateTime.now().format(formatter)
-
     val outputPath = "${context.cacheDir}/$current.mp4"
 
     val commands = ArrayList<String>()
     commands.add("-i")
     commands.add(videoPath)
     if (text != null){
+      Log.e(TAG, "CAME arrived")
       commands.add("-vf")
       commands.add("drawtext=fontfile=/system/fonts/Roboto-Regular.ttf:text='$text':fontcolor=red:fontsize=100:x=$textX:y=$textY")
     }
@@ -111,7 +116,7 @@ class VideoEditPlugin: FlutterPlugin, MethodCallHandler {
       commands.add("-i")
       commands.add(imagePath)
       commands.add("-filter_complex")
-      commands.add("[1:v]scale=100:-1[ovrl], [0:v][ovrl]overlay=$imageX:$imageY")
+      commands.add("[1:v]scale=250:-1[ovrl], [0:v][ovrl]overlay=$imageX:$imageY")
     }
     // commands.add("-vf")
     // commands.add("drawline=x1=50:y1=200:x2=300:y2=100:color=$color:thickness=5")

@@ -1,13 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'dart:async';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_edit/video_edit.dart';
-import 'package:video_edit/video_edit_model.dart';
 import 'package:video_edit_example/edit_video.dart';
 import 'package:video_edit_example/video.dart';
 
@@ -40,8 +37,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final _videoEditPlugin = VideoEdit();
   File? videoFile;
+  final _videoEditPlugin = VideoEdit();
 
   Future<File> getFile(String assetPath) async {
     ByteData bytes = await rootBundle.load(assetPath); //load sound from assets
@@ -59,28 +56,6 @@ class _HomePageState extends State<HomePage> {
     return videoFile;
   }
 
-  Future<File?> doImage({File? video}) async {
-    File imageFile = await getFile('assets/images.jpeg');
-    late File videoFile;
-    if (video != null) {
-      videoFile = video;
-    } else {
-      videoFile = await getFile('assets/test.mp4');
-    }
-    final VideoEditModel videoEditImage = VideoEditModel(
-      type: VideoEditTypes.image,
-      videoPath: videoFile.path,
-      text: TextModel(
-        text: "GabbyGreat",
-        textX: 500,
-        textY: 300,
-      ),
-    );
-    var a = await _videoEditPlugin.addImageToVideo([videoEditImage]);
-    debugPrint("THIS IS>>>>>>>>$a ");
-    return a;
-  }
-
   void editVideo(File newFile) {
     setState(() {
       videoFile = newFile;
@@ -91,7 +66,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Plugin Video Edit App'),
+        title: InkWell(
+          onTap: () async => await _videoEditPlugin.getBatteryLevel(),
+          child: const Text(
+            'Plugin Video Edit App',
+          ),
+        ),
       ),
       body: Center(
         child: Column(
@@ -130,20 +110,6 @@ class _HomePageState extends State<HomePage> {
               }
             },
             child: const Icon(Icons.play_arrow),
-          ),
-          const SizedBox(width: 20),
-          FloatingActionButton(
-            heroTag: '1',
-            onPressed: () => doImage().then((value) {
-              if (value != null) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => VideoApp(file: value),
-                  ),
-                );
-              }
-            }),
-            child: const Icon(Icons.image),
           ),
         ],
       ),
